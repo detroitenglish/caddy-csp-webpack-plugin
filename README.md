@@ -1,6 +1,13 @@
 # Caddy CSP Webpack Plugin
 Generate [Caddy server header directives](https://caddyserver.com/docs/header) along with your bundle for an always-fresh Content Security Policy using your assets' latest hashes  🔒
 
+&nbsp;
+
+![Caddy CSP Webpack Plugin](/.github/caddy-csp-headers-example_optimized.gif)
+
+
+&nbsp;
+
 ## Usage
 
 Require the plugin...
