@@ -63,11 +63,12 @@ class CaddyCSPPlugin {
 
           if (this.maps) {
             const { user, pw } = this.creds
-            safeMaps = [ // eslint-disable-line
-              `basicauth ${user} ${pw} {`,
-              this.mapFiles.join('\n'),
-              `}`,
-            ].join('\n')
+            if (!!user && !!pw)
+              safeMaps = [
+                `basicauth ${user} ${pw} {`,
+                this.mapFiles.join('\n'),
+                `}`,
+              ].join('\n')
           }
 
           const csp = [ // eslint-disable-line
