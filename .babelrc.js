@@ -5,13 +5,17 @@ module.exports = {
       {
         useBuiltIns: 'usage',
         modules: false,
+        corejs: 2,
         targets: {
-          node: '6',
+          node: '8',
         },
-        exclude: ['es6.promise'],
         debug: !!process.env.DEBUG,
       },
     ],
   ],
-  plugins: ['module:faster.js', 'closure-elimination'],
+  plugins: [
+    'module:faster.js',
+    '@babel/plugin-proposal-throw-expressions',
+    'closure-elimination',
+  ],
 }
