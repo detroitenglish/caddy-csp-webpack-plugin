@@ -11,30 +11,30 @@
   "homepage": "https://github.com/detroitenglish/caddy-csp-webpack-plugin",
   "scripts": {
     "lint": "./node_modules/.bin/eslint src .babelrc.js .eslintrc.js",
-    "precommit": "npm-run-all lint",
     "clean": "del-cli dist/*",
     "bundle": "babel src -d dist",
     "build": "npm-run-all -s lint clean bundle"
   },
   "dependencies": {
-    "uglify-es": "^3.3.9"
+    "minimatch": "^3.0.4",
+    "terser": "^3.17.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/polyfill": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "babel-eslint": "^9.0.0",
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.4.0",
+    "@babel/plugin-proposal-throw-expressions": "^7.2.0",
+    "@babel/polyfill": "^7.4.0",
+    "@babel/preset-env": "^7.4.2",
+    "babel-eslint": "^10.0.1",
     "babel-plugin-closure-elimination": "^1.3.0",
     "del-cli": "^1.1.0",
-    "eslint": "^5.4.0",
-    "eslint-config-prettier": "^3.0.1",
-    "eslint-plugin-babel": "^5.1.0",
-    "eslint-plugin-prettier": "^2.6.2",
+    "eslint": "^5.15.3",
+    "eslint-config-prettier": "^4.1.0",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-prettier": "^3.0.1",
     "faster.js": "^1.1.0",
-    "husky": "^0.14.3",
-    "npm-run-all": "^4.1.3",
-    "prettier": "^1.14.2"
+    "npm-run-all": "^4.1.5",
+    "prettier": "^1.16.4"
   },
   "peerDependencies": {
     "webpack": ">=4"
@@ -53,6 +53,6 @@
     "content-security-policy"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=8"
   }
 }
