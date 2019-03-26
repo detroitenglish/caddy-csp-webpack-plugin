@@ -35,8 +35,9 @@ Below are available configuration options, and their default settings.
     filename: `csp-headers.caddy`, // generated file name relative to your output path
     headerPath: `/`, // path at which to apply the CSP header(s)
     policies: [], // Array of additional security policies as strings See example below
+    ignore: [], // Array of glob strings or regular expressions to exclude
     include_paths: [], // Include other files not in your bundle
-    minify_include_paths: true, // Minify the file's code before hashing the contents
+    minify_include_paths: false, // Minify code before hashing included files (Terser default settings)
     ie_header: false, // include an additional 'x-content-security-policy' for use with Internet Exploder
     hashFunction: `sha256`, // Hash function used for hashing out content hashes
   }
@@ -54,8 +55,10 @@ A typical configuration might look like so:
       `${process.cwd()}/static/some-structure-metadata.js`,
     ],
     headerPath: `/index.html`,
+    minify_include_paths: true,
     ie_header: true,
     hashFunction: `sha256`,
+    ignore: ['some/**/glob-pattern.js', /regex-pattern\.m?js$/],
     policies: [
       `default-src 'none'`,
       `base-uri 'self'`,
