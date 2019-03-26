@@ -1,6 +1,6 @@
 {
   "name": "caddy-csp-webpack-plugin",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "description": "Hash your assets and create a Caddy server Content Security Policy header directive for every build",
   "main": "dist/index.js",
   "author": "Dave Willenberg <dave@detroit-english.de> (https://github.com/detroitenglish)",
