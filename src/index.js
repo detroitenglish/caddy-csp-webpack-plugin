@@ -1,7 +1,18 @@
 const fs = require('fs')
-const UglifyJS = require('uglify-es')
+const Terser = require('terser')
 const path = require('path')
 const crypto = require('crypto')
+const minimatch = require('minimatch')
+
+function loadMinified(filePath) {
+  let code = fs.readFileSync(filePath, 'utf-8')
+  let result = Terser.minify(code)
+  if (result.error) {
+    console.error(result.error)
+    return false
+  }
+  return result.code
+}
 
 class CaddyCSPPlugin {
   constructor({
@@ -9,10 +20,10 @@ class CaddyCSPPlugin {
     headerPath = `/`,
     policies = [],
     include_paths = [],
-    minify_include_paths = true,
+    ignore = [],
+    minify_include_paths = false,
     ie_header = false,
     hashFunction = `sha256`,
-    sourcemap_credentials = { user: void 0, pw: void 0 },
   }) {
     this.filename = filename
     this.headerPath = path.normalize(`/` + headerPath)
@@ -24,22 +35,29 @@ class CaddyCSPPlugin {
       .filter(p => !/^script/.test(p))
       .map(p => p.replace(/;/g, ``))
 
-    this.externalFiles = include_paths.map(filePath => {
-      const code = fs.readFileSync(filePath, 'utf-8') // eslint-disable-line
-      const result = minify_include_paths ? UglifyJS.minify(code) : { code }
-      if (result.error) return ''
-      return Promise.resolve(
-        crypto
-          .createHash(this.hashFun)
-          .update(result.code)
-          .digest(`base64`)
-      ).then(hash => (this.scriptSrcHashes += ` '${this.hashFun}-${hash}'`))
+    this.externalFiles = include_paths
+      .map(filePath => {
+      const content = minify_include_paths ? loadMinified(filePath) : fs.readFileSync(filePath, 'utf-8') // eslint-disable-line
+
+        if (!content) return
+        return Promise.resolve(
+          crypto
+            .createHash(this.hashFun)
+            .update(content)
+            .digest(`base64`)
+        ).then(hash => (this.scriptSrcHashes += ` '${this.hashFun}-${hash}'`))
+      })
+      .filter(Boolean)
+
+    this.ignore = ignore.map(pattern => {
+      return typeof pattern === 'string'
+        ? minimatch.makeRe(pattern)
+        : pattern instanceof RegExp
+        ? pattern
+        : throw new Error(
+            `[caddy-csp-plugin] Ignored patterns must be glob strings or regular expressions`
+          )
     })
-
-    this.mapFiles = []
-
-    this.maps = !!Object.keys(sourcemap_credentials).length
-    this.creds = { ...sourcemap_credentials }
   }
 
   apply(compiler) {
@@ -47,8 +65,6 @@ class CaddyCSPPlugin {
       `CaddyCSPPlugin`,
       async compilation => {
         const createDirectives = () => {
-          let safeMaps
-
           const createHeaders = () => {
             this.policies.push(this.scriptSrcHashes)
             const headerContent = this.policies.join(`; `)
@@ -59,16 +75,6 @@ class CaddyCSPPlugin {
                 ? void 0
                 : `X-Content-Security-Policy "${headerContent};"`,
             ].filter(Boolean)
-          }
-
-          if (this.maps) {
-            const { user, pw } = this.creds
-            if (!!user && !!pw)
-              safeMaps = [
-                `basicauth ${user} ${pw} {`,
-                this.mapFiles.join('\n'),
-                `}`,
-              ].join('\n')
           }
 
           const csp = [ // eslint-disable-line
@@ -83,21 +89,20 @@ class CaddyCSPPlugin {
             `}`,
           ].join('\n')
 
-          return [csp, notFound, safeMaps].filter(Boolean).join('\n\n')
+          return [csp, notFound].filter(Boolean).join('\n\n')
         }
 
         for (let asset in compilation.assets) {
-          if (/\.js$/.test(asset)) {
+          if (
+            /\.m?js$/.test(asset) &&
+            this.ignore.length &&
+            this.ignore.every(regex => !regex.test(asset))
+          ) {
             let content = compilation.assets[asset].source()
             this.scriptSrcHashes += ` '${this.hashFun}-${await crypto
               .createHash(this.hashFun)
               .update(content)
               .digest('base64')}'`
-            continue
-          }
-          if (this.maps && /\.map$/.test(asset)) {
-            this.mapFiles.push(`  /${asset}`)
-            continue
           }
         }
 
