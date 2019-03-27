@@ -83,7 +83,7 @@ class CaddyCSPPlugin {
       };
 
       for (let asset in compilation.assets) {
-        if (/\.m?js$/.test(asset) && this.ignore.length && this.ignore.every(regex => !regex.test(asset))) {
+        if (/\.m?js$/.test(asset) && (!this.ignore.length || this.ignore.every(regex => !regex.test(asset)))) {
           let content = compilation.assets[asset].source();
           this.scriptSrcHashes += ` '${this.hashFun}-${await crypto.createHash(this.hashFun).update(content).digest('base64')}'`;
         }
