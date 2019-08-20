@@ -9,7 +9,7 @@ module.exports = {
         targets: {
           node: '8',
         },
-        debug: !!process.env.DEBUG,
+        debug: true,
       },
     ],
   ],
